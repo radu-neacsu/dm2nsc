@@ -67,7 +67,7 @@ def convert_nightscout(entries, start_time=None):
             "enteredBy": author
         }
         out.append(dat)
-        add_slow_carbs_entries(dat, out)
+        #add_slow_carbs_entries(dat, out)
 
     return out
 
