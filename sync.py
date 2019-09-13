@@ -102,7 +102,7 @@ def main():
 	print("Converted", len(ns_format), "entries to Nightscout format")
 
 	print("Uploading", len(ns_format), "entries to Nightscout...")
-
+        upload_nightscout(ns_format)
 
 if __name__ == '__main__':
 	main()
