@@ -1,5 +1,6 @@
-import arrow
 import re
+
+import arrow
 import requests
 
 from secret import USERNAME, PASSWORD, NS_URL
@@ -112,7 +113,7 @@ def main():
     new_entries = convert_nightscout_to_diabetes_m(entries)
     uploaded_entities = upload_to_dm(new_entries, login)
 
-    exit(1)
+    exit(0)
 
 
 if __name__ == '__main__':
