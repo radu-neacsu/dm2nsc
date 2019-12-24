@@ -30,7 +30,6 @@ def get_entries(login):
                             }, json={
             'fromDate': -1,
             'toDate': -1,
-            'includeCarbs': 'true',
             'isDescOrder': 'true',
             'page_count': 10,
             'page_start_entry_time': 0
@@ -53,19 +52,23 @@ def convert_nightscout(entries, start_time=None):
 
         author = NS_AUTHOR
 
+        event_type = "Meal Bolus"
+        insulin = 0
+        if entry['carb_bolus'] > 0 and entry["carbs"] == 0:
+            event_type =  "Correction Bolus"
+        insulin = entry["correction_bolus"] + entry["carb_bolus"]
+
         dat = {
-            "eventType": "Meal Bolus",
+            "eventType": event_type,
             "created_at": time.format(),
             "carbs": entry["carbs"],
             "protein": entry["proteins"],
-            "dm_entry_id": entry["entry_id"],
-            "dm_extended_bolus": entry["extended_bolus"],
-            "dm_extended_bolus_duration": entry["extended_bolus_duration"],
-            "dm_carb_ratio_factor": entry["carb_ratio_factor"],
+            "insulin": insulin,
             "fat": entry["fats"],
             "notes": notes,
             "enteredBy": author
         }
+
         out.append(dat)
         #add_slow_carbs_entries(dat, out)
 
