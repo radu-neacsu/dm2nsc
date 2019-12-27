@@ -56,7 +56,8 @@ def convert_nightscout(entries, start_time=None):
         if entry['basal'] > 0:
             dat = {
                 "eventType": "Note",
-                "notes": " Levemir "+ str(entry["basal"]) + "U"
+                "notes": " Levemir "+ str(entry["basal"]) + "U",
+                "enteredBy": author
             }
             out.append(dat)
 
