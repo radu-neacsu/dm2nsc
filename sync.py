@@ -52,10 +52,22 @@ def convert_nightscout(entries, start_time=None):
 
         author = NS_AUTHOR
 
-        event_type = "Meal Bolus"
-        insulin = 0
+
+        if entry['basal'] > 0:
+            dat = {
+                "eventType": "Note",
+                "notes": " Levemir "+ str(entry["basal"]) + "U"
+            }
+            out.append(dat)
+
         if entry['carb_bolus'] > 0 and entry["carbs"] == 0:
             event_type =  "Correction Bolus"
+        elif entry['carb_bolus'] == 0 and entry['carbs'] > 0:
+            event_type = "Carb Correction"
+        elif entry['carb_bolus'] > 0 and entry['carbs'] > 0:
+            event_type = "Meal Bolus"
+        else:
+            continue
         insulin = entry["correction_bolus"] + entry["carb_bolus"]
 
         dat = {
