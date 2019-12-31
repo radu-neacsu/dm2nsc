@@ -61,9 +61,9 @@ def convert_nightscout(entries, start_time=None):
                 "enteredBy": author
             }
             out.append(dat)
-
+        extended_bolus = 0;
         if entry['carb_bolus'] > 0 and entry["carbs"] == 0:
-            event_type =  "Correction Bolus"
+            event_type = "Correction Bolus"
         elif entry['carb_bolus'] == 0 and entry['carbs'] > 0:
             event_type = "Carb Correction"
         elif entry['carb_bolus'] > 0 and entry['carbs'] > 0:
@@ -82,6 +82,14 @@ def convert_nightscout(entries, start_time=None):
             "notes": notes,
             "enteredBy": author
         }
+
+        if entry['extended_bolus'] > 0:
+            dat['eventType'] = "Combo Bolus"
+            dat['splitExt'] = (((entry['extended_bolus'])*100)/(insulin + entry['extended_bolus']))
+            dat['splitNow'] = 100 - dat['splitExt']
+            dat['duration'] = entry['extended_bolus_duration']
+            dat['enteredinsulin'] = entry['extended_bolus']
+            dat['relative'] = (entry['extended_bolus']/(entry['extended_bolus_duration']/60))
 
         out.append(dat)
         #add_slow_carbs_entries(dat, out)
