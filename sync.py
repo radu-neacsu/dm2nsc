@@ -1,9 +1,15 @@
-import requests, json, arrow, hashlib, datetime
 from decimal import Decimal, ROUND_HALF_UP
+
+import arrow
+import datetime
+import hashlib
+import requests
+
 from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
 
 # this is the enteredBy field saved to Nightscout
 NS_AUTHOR = "Diabetes-M"
+DISABLE_INSUIN_ADD = True;
 
 DO_MYSUGR_PROCESSING = (USERNAME == 'jwoglom')
 
@@ -72,6 +78,9 @@ def convert_nightscout(entries, start_time=None):
             continue
         insulin = entry["correction_bolus"] + entry["carb_bolus"]
 
+        if DISABLE_INSUIN_ADD:
+            insulin = 0
+
         dat = {
             "eventType": event_type,
             "created_at": time.format(),
@@ -83,18 +92,20 @@ def convert_nightscout(entries, start_time=None):
             "enteredBy": author
         }
 
-        if entry['extended_bolus'] > 0:
+        extended_bolus = 0
+        if entry['extended_bolus'] > 0 and False == DISABLE_INSUIN_ADD:
             dat['eventType'] = "Combo Bolus"
-            dat['splitExt'] = (((entry['extended_bolus'])*100)/(insulin + entry['extended_bolus']))
+            dat['splitExt'] = (((entry['extended_bolus']) * 100) / (insulin + entry['extended_bolus']))
             dat['splitNow'] = 100 - dat['splitExt']
             dat['duration'] = entry['extended_bolus_duration']
             dat['enteredinsulin'] = entry['extended_bolus']
-            dat['relative'] = (entry['extended_bolus']/(entry['extended_bolus_duration']/60))
+            dat['relative'] = (entry['extended_bolus'] / (entry['extended_bolus_duration'] / 60))
 
         out.append(dat)
-        #add_slow_carbs_entries(dat, out)
+        # add_slow_carbs_entries(dat, out)
 
     return out
+
 
 def add_slow_carbs_entries(entry, out=[]):
     if entry['dm_extended_bolus'] > 0 and entry['dm_extended_bolus_duration'] > 0:
@@ -104,13 +115,13 @@ def add_slow_carbs_entries(entry, out=[]):
         time = arrow.get(entry["created_at"])
         i = 0
         while number_of_ecarb_entries > i:
-            eCarb = total_eCarb / (number_of_ecarb_entries-i)
+            eCarb = total_eCarb / (number_of_ecarb_entries - i)
             eCarb = int(Decimal(eCarb).to_integral_value(rounding=ROUND_HALF_UP))
             if total_eCarb < eCarb:
                 eCarb = total_eCarb
             i += 1
             notes = "eCarb " + str(i) + "/" + str(number_of_ecarb_entries)
-            author = NS_AUTHOR+":eCarb:"+str(entry['dm_entry_id'])
+            author = NS_AUTHOR + ":eCarb:" + str(entry['dm_entry_id'])
             time = time.shift(minutes=15)
             dat = {
                 "eventType": "Meal eCarb",
@@ -121,6 +132,7 @@ def add_slow_carbs_entries(entry, out=[]):
             }
             total_eCarb -= eCarb
             out.append(dat)
+
 
 def upload_nightscout(ns_format):
     upload = requests.post(NS_URL + 'api/v1/treatments?api_secret=' + NS_SECRET, json=ns_format, headers={
