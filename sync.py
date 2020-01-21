@@ -1,8 +1,8 @@
+import datetime
+import hashlib
 from decimal import Decimal, ROUND_HALF_UP
 
 import arrow
-import datetime
-import hashlib
 import requests
 
 from secret import USERNAME, PASSWORD, NS_URL, NS_SECRET
@@ -69,6 +69,8 @@ def convert_nightscout(entries, start_time=None):
             out.append(dat)
         extended_bolus = 0;
         if entry['carb_bolus'] > 0 and entry["carbs"] == 0:
+            if DISABLE_INSUIN_ADD:
+                continue
             event_type = "Correction Bolus"
         elif entry['carb_bolus'] == 0 and entry['carbs'] > 0:
             event_type = "Carb Correction"
