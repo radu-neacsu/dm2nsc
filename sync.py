@@ -37,7 +37,7 @@ def get_entries(login):
             'fromDate': -1,
             'toDate': -1,
             'isDescOrder': 'true',
-            'page_count': 10,
+            'page_count': 50,
             'page_start_entry_time': 0
         })
     return entries.json()
@@ -58,23 +58,7 @@ def convert_nightscout(entries, start_time=None):
 
         author = NS_AUTHOR
 
-
-        if entry['basal'] > 0:
-            dat = {
-                "eventType": "Note",
-                "created_at": time.format(),
-                "notes": " Levemir "+ str(entry["basal"]) + "U",
-                "enteredBy": author
-            }
-            out.append(dat)
-        extended_bolus = 0;
-        if entry['carb_bolus'] > 0 and entry["carbs"] == 0:
-            if DISABLE_INSUIN_ADD:
-                continue
-            event_type = "Correction Bolus"
-        elif entry['carb_bolus'] == 0 and entry['carbs'] > 0:
-            event_type = "Carb Correction"
-        elif entry['carb_bolus'] > 0 and entry['carbs'] > 0:
+        if entry['carb_bolus'] > 0 and entry['carbs'] > 0:
             event_type = "Meal Bolus"
         else:
             continue
@@ -91,11 +75,13 @@ def convert_nightscout(entries, start_time=None):
             "insulin": insulin,
             "fat": entry["fats"],
             "notes": notes,
+            author+"_entry_id": entry['entry_id'],
+            author+"_last_modified": entry['last_modified'],
             "enteredBy": author
         }
 
-        extended_bolus = 0
-        if entry['extended_bolus'] > 0 and False == DISABLE_INSUIN_ADD:
+        extended_bolus = 0;
+        if False and entry['extended_bolus'] > 0:
             dat['eventType'] = "Combo Bolus"
             dat['splitExt'] = (((entry['extended_bolus']) * 100) / (insulin + entry['extended_bolus']))
             dat['splitNow'] = 100 - dat['splitExt']
