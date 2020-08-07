@@ -60,6 +60,21 @@ def convert_nightscout(entries, start_time=None):
 
         if entry['carb_bolus'] > 0 and entry['carbs'] > 0:
             event_type = "Meal Bolus"
+        elif entry['carbs'] > 0:
+            event_type = "Carb Correction"
+        elif entry['carbs'] == 0 and entry['glucoseInCurrentUnit'] > 0:
+            dat = {
+                "eventType": "BG Check",
+                "created_at": time.format(),
+                "glucoseType": "Finger",
+                "glucose": entry['glucoseInCurrentUnit'],
+                "units": "mg/dl",
+                author+"_entry_id": entry['entry_id'],
+                author+"_last_modified": entry['last_modified'],
+                "enteredBy": author
+            }
+            out.append(dat)
+            continue
         else:
             continue
         insulin = entry["correction_bolus"] + entry["carb_bolus"]
@@ -80,7 +95,7 @@ def convert_nightscout(entries, start_time=None):
             "enteredBy": author
         }
 
-        extended_bolus = 0;
+        extended_bolus = 0
         if False and entry['extended_bolus'] > 0:
             dat['eventType'] = "Combo Bolus"
             dat['splitExt'] = (((entry['extended_bolus']) * 100) / (insulin + entry['extended_bolus']))
